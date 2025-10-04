@@ -1,0 +1,164 @@
+This is a quick reference guide organized by Chapter and Section for just the commands I have included in this book. Along with the Windows command, you will also see a Linux and MacOS equivalent for the non-Microsoft audience out there. 
+CHAPTER 3   SECTION: INTRO  - How to open a command prompt
+General Command Line Launch:
+Windows: Press âŠž+R, typeâ€¯cmd, press Enter
+Linux: Use Ctrl+Alt+T to open a terminal.
+MacOS: Use Cmd+Space, type Terminal, press Enter.
+________________________________________
+CHAPTER 3   SECTION:  TOP ANTI-MALWARE - Turn On Windows Malware Protection
+Windows: Activate via GUI, or all at once via (PowerShell, generic example):
+Set-MpPreference -DisableRealtimeMonitoring $false
+Set-MpPreference -DisableIOAVProtection $false
+Set-MpPreference -PUAProtection enable
+Linux:  Use built-in options in ClamAV or install third-party security tools.
+	sudo apt install clamav-daemon
+MacOS: Use built-in XProtect (no CLI customization), or install third-party tools.
+Discrepancy: Defender is Windows-specific. Linux and MacOS require different security products.
+________________________________________
+CHAPTER 3   SECTION: DNS PROTECTION - How to Check Your Current DNS
+Functionality: Lists all network configuration and DNS details.
+Windows:   ipconfig /all
+Linux: nmcli device show 
+MacOS:   scutil --dns  (or)  cat /etc/resolv.conf
+Note: Linux/Mac commands may show only DNS settings, not all the adapter details unlike Windowsâ€™ ipconfig /all.
+________________________________________
+CHAPTER 3   SECTION: DNS PROTECTION - Secure DNS with OpenDNS
+Functionality: Sets primary and secondary DNS servers for the interface named â€œWi-Fiâ€.
+Windows:   netsh interface ip set dns name="Wi-Fi" static 208.67.222.222
+        netsh interface ip add dns name="Wi-Fi" 208.67.220.220 index=2
+Linux:  sudo nano /etc/network/interfaces or /etc/netplan/*.yaml depending on distro
+MacOS:     networksetup -setdnsservers Wi-Fi 208.67.222.222 208.67.220.220
+Discrepancy: Interface names may differ. You must know the exact name or index for the network device on all operating systems.
+________________________________________
+CHAPTER 3   SECTION:  DNS PROTECTION -  Show the Connected Interfaces Names
+Windows:   netsh interface show interface
+Linux: ip -o link show up | awk -F': ' '{print $2}'
+MacOS: networksetup -listallnetworkservices
+Note: The commands differ in output style and content but all show network device names/IDs.
+________________________________________
+CHAPTER 3   SECTION:  PATCHING SYSTEMS - Is Update Service running? 
+Windows: sc query wuauserv
+Linux:  sudo systemctl enable apt-daily-upgrade.timer
+	sudo systemctl start apt-daily-upgrade.timer
+	sudo dpkg-reconfigure unattended-upgrades
+(But for OS updating, check status for apt-daily.timer, or run updates manually.)
+MacOS: softwareupdate --list
+Discrepancy: Windows specifically checks the update service status, while on Debian/MacOS, package updates are checked differently (there's no analog for wuauserv).
+________________________________________
+CHAPTER 3   SECTION:  PATCHING SYSTEMS  -  Update All Applications Manually
+Windows: winget upgrade --all
+Linux:  sudo apt update && sudo apt upgrade -y
+MacOS:   brew update && brew upgrade
+Note: Requires Homebrew for MacOS, which is not included by default; winget is Windows 10+/11 only.
+________________________________________
+CHAPTER 3   SECTION:  PATCHING SYSTEMS  - Schedule Weekly Application Updates
+Windows:   powershell -Command "Register-ScheduledTask -TaskName 'WingetUpdates' -Action (New-ScheduledTaskAction -Execute 'cmd.exe' -Argument '/k winget upgrade --all & pause') -Trigger (New-ScheduledTaskTrigger -Weekly -DaysOfWeek Wednesday -At 9:00AM) -Settings (New-ScheduledTaskSettingsSet -StartWhenAvailable) -Force"
+Linux:  sudo crontab -e
+	select nano and update the file with the line below: (ctrl+x to save)
+        0 9 * * 3 root apt update && apt upgrade -y
+MacOS:  Use launchd with a .plist job, or brew services. But for simplicity, use cron:
+ 0 9 * * 3 /usr/local/bin/brew update && /usr/local/bin/brew upgrade
+Discrepancy: The Windows command creates a system-scheduled task; on Linux/Mac, cron or launchd is used instead.
+________________________________________
+CHAPTER 3   SECTION:  PATCHING SYSTEMS  - Firmware Updates (locate system Info)
+Windows:  systeminfo
+Linux: sudo dmidecode -t 2
+MacOS:  system_profiler SPHardwareDataType
+________________________________________
+CHAPTER 3   SECTION:  BACKUPS  - Check if Shadow Copies are running
+Windows: vssadmin list shadowstorage
+
+Linux: crontab -l | grep timeshift
+No native â€œshadow copy,â€ but for snapshots: 
+For LVM: sudo lvs
+Timeshift (not default):  sudo timeshift --list
+
+MacOS: Use Time Machine (GUI), or for APFS snapshots: tmutil listlocalsnapshots /
+Discrepancy: Underlying technologies for snapshots vary significantly; Windows uses VSS, while Linux might use LVM/Btrfs/Timeshift, Mac uses Time Machine or APFS snapshots.
+________________________________________
+CHAPTER 3   SECTION:  BACKUPS - Troubleshooting (Turn on VSSAdmin)
+Windows: wmic.exe /Namespace:\\root\default Path SystemRestore Call Enable "C:"
+Linux: sudo apt update && sudo apt install -y timeshift
+MacOS: Time Machine setup via System Preferences.
+Note: No direct CLI for enabling Time Machine or Timeshift snapshots via one command.
+________________________________________
+CHAPTER 3   SECTION:  BACKUPS - Troubleshooting (Install WMI)
+Windows:  DISM /Online /Cleanup-Image /RestoreHealth /Source:wim:D:\\sources\\install.wim:1 /LimitAccess 
+Linux:   (No direct full system repair command.)
+MacOS: diskutil repairDisk <disk>
+Or for software, reinstall via App Store or Terminal.
+Discrepancy: DISM is unique to Windows for servicing Windows images.
+________________________________________
+CHAPTER 3   SECTION:  BACKUPS - Creating Manual System Restore Point
+Windows: wmic.exe /Namespace:\\root\\default Path SystemRestore Call CreateRestorePoint "Manual Restore Point", 100, 7
+Linux: No direct equivalent; create Timeshift snapshot:
+sudo timeshift --create --comments "Manual Restore Point"
+MacOS: Ntmutil startbackup --block
+
+
+Discrepancy: Underlying infrastructure differs; Timeshift or APFS-based, are not built into classic UNIX.
+________________________________________
+CHAPTER 3   SECTION:  BACKUPS -  Schedule a Full System Backup
+Windows: SCHTASKS /Create /SC DAILY /TN DailyFullBackup /RL HIGHEST /st 08:00 /TR "wbAdmin Start Backup -backupTarget:F: -include:C: -allCritical -quiet"
+Linux:  sudo crontab -e
+	select nano and update the file with the line below: (ctrl+x to save)
+	add this line: 0 8 * * * root timeshift --create --comments "DailyFullBackup"
+	ctrl+x to save
+MacOS:  Time Machine backups typically auto-run, but for scheduled CLI tasks:
+tmutil startbackup --auto
+Discrepancy: Backup tooling is OS-specific; wbAdmin is Windows-only.
+________________________________________
+CHAPTER 3   SECTION:  FIREWALL - Turn On and Secure OS Firewall
+Windows: netsh advfirewall set allprofiles state on
+netsh advfirewall set publicprofile firewallpolicy blockinbound,allowoutbound
+netsh advfirewall show publicprofile
+Linux:    sudo ufw enable
+          sudo ufw default deny incoming
+          sudo ufw default allow outgoing
+          sudo ufw status verbose
+MacOS: 
+sudo /usr/libexec/ApplicationFirewall/socketfilterfw --setglobalstate on
+sudo /usr/libexec/ApplicationFirewall/socketfilterfw --setblockall on
+sudo /usr/libexec/ApplicationFirewall/socketfilterfw --getglobalstate
+Discrepancy: All can set firewall defaults, but the commands and feature set differ.
+________________________________________
+CHAPTER 4  SECTION:  WHAT ABOUT VULNERABILITIES  - Installing HotCakeX
+Windows:  winget install --id 9p7ggfl7dx57 --exact --accept-package-agreements --accept-source-agreements --force --source msstore
+Linux/MacOS: Not applicable.
+Discrepancy: This is a Windows Store app, only for Windows.
+________________________________________
+CHAPTER 4  SECTION:  WHAT ABOUT VULNERABILITIES  - Install Nmap 
+Windows:  powershell -Command "Invoke-WebRequest https://nmap.org/dist/nmap-7.94-setup.exe -OutFile nmap-setup.exe -UseBasicParsing"; start /wait nmap-setup.exe
+Linux:  sudo apt-get install nmap && sudo apt upgrade nmap
+MacOS: sudo apt-get install nmap && sudo apt upgrade nmap
+
+________________________________________
+CHAPTER 4  SECTION: WHAT ABOUT VULNERABILITIES  - Install Vulnerability Data
+Windows: Run the following three commands:
+powershell -Command "Invoke-WebRequest -Uri https://github.com/scipag/vulscan/archive/refs/heads/master.zip -OutFile %TEMP%\vulscan.zip"
+powershell -Command "Expand-Archive -Path %TEMP%\vulscan.zip -DestinationPath %TEMP%\vulscan"
+xcopy /E /Y "%TEMP%\vulscan\vulscan-master\vulscan\*" "C:\Program Files (x86)\Nmap\scripts"
+Linux\MacOS:	[ -d /usr/share/nmap/scripts/nmap-vulners/.git ] && sudo git -C /usr/share/nmap/scripts/nmap-vulners pull || sudo git clone https://github.com/vulnersCom/nmap-vulners.git /usr/share/nmap/scripts/nmap-vulners && [ -d /usr/share/nmap/scripts/vulscan/.git ] && sudo git -C /usr/share/nmap/scripts/vulscan pull || sudo git clone https://github.com/scipag/vulscan /usr/share/nmap/scripts/vulscan && sudo chmod +x /usr/share/nmap/scripts/vulscan/update.sh && sudo /usr/share/nmap/scripts/vulscan/update.sh
+
+
+
+________________________________________
+CHAPTER 4 SECTION: WHAT ABOUT VULNERABILITIES -  Example Scanning Commands
+Windows:  This command scans 192.168.1.0/24. Substitute your IP range.
+"C:\Program Files (x86)\Nmap\nmap.exe" -sV -v --script=vulscan.nse 192.168.1.0/24
+Linux/MacOS:   	nmap -sV --script nmap-vulners/vulners.nse 192.168.2.0/24
+
+
+		
+________________________________________
+BONUS COMMANDS:  SHOW ALL SSIDS AND PASSWORDS 
+Windows: powershell.exe -Command "(netsh wlan show profiles) | Select-String ':(.+)$' | ForEach-Object { $name = $_.Matches.Groups[1].Value.Trim(); (netsh wlan show profile name=\"$name\" key=clear) | Select-String 'Key Content\s+:\s+(.+)$' | ForEach-Object { $pass = $_.Matches.Groups[1].Value.Trim(); [PSCustomObject]@{ SSID = $name; Password = $pass } } } | Format-Table -AutoSize"
+	Linux:  for ssid in $(nmcli -t -f NAME connection show); do echo "SSID: $ssid"; nmcli connection show "$ssid" | grep -i 802-11-wireless-security.psk; done
+	MacOS: security find-generic-password -wa "SSID_NAME"
+	
+Online Link: www.darrylhicks.com/commands/SSID_Passwords.txt
+
+
+
+
+
