@@ -9,7 +9,8 @@ ________________________________________
 CHAPTER 3   SECTION:  TOP ANTI-MALWARE - Turn On Windows Malware Protection
 
 Windows:   powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Set-MpPreference -DisableRealtimeMonitoring $false; Set-MpPreference -DisableIOAVProtection $false; Set-MpPreference -PUAProtection enable; Set-MpPreference -ScanParameters 2; Set-MpPreference -ScanScheduleDay 1; Set-MpPreference -ScanScheduleOffset 0"
-Quick AV Scan:  powershell.exe -c "Start-MpScan -ScanType QuickScan"
+
+      Quick AV Scan:  powershell.exe -c "Start-MpScan -ScanType QuickScan"
    	Full AV Scan:  powershell.exe -c "Start-MpScan -ScanType FullScan"
 
 Linux:  Use built-in options in ClamAV or install third-party security tools. This procedure is greatly dependent on the Linux version that you have, so I'm going to recommend that you look this up using your favorite AI platform. For Ubuntu, this will get AV installed and scheduled:
@@ -64,6 +65,7 @@ Linux:  sudo systemctl enable apt-daily-upgrade.timer && sudo systemctl start ap
 (This run persistent daily updates for Ubuntu. Service names vary for other Linux versions).
 
 MacOS: sudo launchctl load -w /Library/LaunchDaemons/com.apple.softwareupdate.plist && sudo launchctl start com.apple.softwareupdate
+
 Discrepancy: Windows specifically checks the update service status, while on Debian/MacOS, package updates are checked differently (there's no analog for wuauserv).
 ________________________________________
 CHAPTER 3   SECTION:  PATCHING SYSTEMS  -  Update All Applications Manually
@@ -95,6 +97,7 @@ Linux: sudo dmidecode -t baseboard
 MacOS:  system_profiler SPHardwareDataType
 ________________________________________
 CHAPTER 3   SECTION:  BACKUPS  - Check if Shadow Copies are running
+
 Windows: vssadmin list shadowstorage
 
 Linux: No native “shadow copy,” but for snapshots: sudo lvs
@@ -182,8 +185,8 @@ Linux\MacOS:  (This is all one command)
 ________________________________________
 CHAPTER 4 SECTION: WHAT ABOUT VULNERABILITIES -  Example Scanning Commands
 
-Windows:  This command scans 192.168.1.0/24  (Substitute your IP range)
-"C:\Program Files (x86)\Nmap\nmap.exe" -sV -v --script=vulscan.nse 192.168.1.0/24
+Windows:  This command automatically scans your full local IP range for vulnerabilities
+ powershell -Command "$ip = ((Get-NetIPConfiguration | Where-Object {$_.IPv4DefaultGateway -ne $null}).IPv4Address | Select-Object -First 1).IPAddress; & \"C:\Program Files (x86)\Nmap\nmap.exe\" -sV -v --script=vulscan.nse \"$ip/24\""
 
 Linux/MacOS:   nmap -sV -v --script vulscan/vulscan.nse 192.168.1.0/24
 
