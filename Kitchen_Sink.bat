@@ -151,7 +151,7 @@ powershell -Command "Expand-Archive -Path $env:TEMP\vulscan.zip -DestinationPath
 echo.
 echo Expanding the vulscan zipped file
 echo.
-xcopy /E /Y "%TEMP%\vulscan\vulscan-master*" "C:\Program Files (x86)\Nmap\scripts\"
+xcopy /E /Y "%TEMP%\vulscan\vulscan-master\*" "C:\Program Files (x86)\Nmap\scripts\"
 echo.
 echo Copying the files to the proper locations in NMAP
 echo.
