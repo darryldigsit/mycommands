@@ -92,12 +92,13 @@ echo.
 echo ==================================================
 echo        SYSTEM CONFIGURATION SUMMARY COMPLETE
 echo ==================================================
-echo  - Malware protection ensured
-echo  - DNS protection set (OpenDNS)
-echo  - Windows Update service active
-echo  - Scheduled update task verified
-echo  - Restore point functionality ready
-echo  - Firewall enabled and enforced
+echo     - Malware protection ensured
+echo     - Windows Update service active
+echo     - DNS protection set (OpenDNS)
+echo     - Restore point functionality ready
+echo     - Scheduled Weekly Recovery Point Creation
+echo     - Scheduled update task verified
+echo     - Firewall enabled and enforced
 echo ==================================================
 echo.
 pause
@@ -159,6 +160,8 @@ powershell -Command "$ip = ((Get-NetIPConfiguration | Where-Object {$_.IPv4Defau
 echo.
 echo.
 echo All tests Successful. This tool is now closing.
+echo.
+pause
 goto End
 
 :AllScans
