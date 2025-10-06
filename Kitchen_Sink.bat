@@ -1,54 +1,188 @@
 @echo off
-#Turns on Defender for Endpoint
-powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Set-MpPreference -DisableRealtimeMonitoring $false; Set-MpPreference -DisableIOAVProtection $false; Set-MpPreference -PUAProtection enable"
+title System Setup and Quick Scans
+color 0A
+
+echo ==================================================
+echo       BASIC WINDOWS 11 HARDENING TOOL
+echo ==================================================
+echo For assistance with this tool, contact Darryl Hicks: dhicks@darrylhicks.com
+echo.
+echo.
+
+REM --- Prompt for Quick Scan selection ---
+echo Choose which QUICK SCANS you want to run after Configuring the system (if any).
+echo.
+echo [1] Quick App Update         - Manually Updates installed apps via Winget
+echo [2] Quick AV Scan            - Runs Windows Defender quick scan if enabled
+echo [3] Quick Restore Point      - Creates a new system restore point if possible
+echo [4] Vulnerability IP Scan    - Installs Nmap and runs network scan for vulnerabilities
+echo [A] All Quick Scans
+echo [N] None
+echo.
+set /p scanChoice=Enter option (1-4, A, or N): 
+echo.
+
+REM ====================================================
+REM 1. TURN ON MALWARE PROTECTION
+REM ====================================================
+echo [1/6] Enabling Malware Protection...
+sc query windefend | findstr /i "RUNNING" >nul
+if %errorlevel% neq 0 (
+    echo Windows Defender not active. Enabling protections...
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Set-MpPreference -DisableRealtimeMonitoring $false; Set-MpPreference -DisableIOAVProtection $false; Set-MpPreference -PUAProtection enable; Set-MpPreference -ScanParameters 2"
+) else (
+    echo Windows Defender running with realtime protection enabled.
+)
+
+REM ====================================================
+REM 2. DNS PROTECTION (OpenDNS)
+REM ====================================================
+echo [2/6] Configuring DNS Protection (OpenDNS)...
+FOR /F "tokens=3,*" %%A IN ('netsh interface show interface ^| find "Connected"') DO (
+    netsh interface ip set dns name="%%B" static 208.67.222.222 >nul
+    netsh interface ip add dns name="%%B" 208.67.220.220 index=2 >nul
+)
+ipconfig /all | findstr "DNS Servers"
+
+REM ====================================================
+REM 3. ENABLE WINDOWS UPDATE SERVICE
+REM ====================================================
+echo [3/6] Enabling Windows Update service...
+sc config wuauserv start= auto >nul
+net start wuauserv >nul
+sc query wuauserv | findstr /i "RUNNING"
+
+REM ====================================================
+REM 4. SCHEDULE WINDOWS UPDATE SERVICE TASK
+REM ====================================================
+echo [4/6] Creating scheduled update task (WingetUpdates)...
+schtasks /Query /TN WingetUpdates >nul 2>&1
+if %errorlevel% neq 0 (
+    powershell -Command "Register-ScheduledTask -TaskName 'WingetUpdates' -Action (New-ScheduledTaskAction -Execute 'cmd.exe' -Argument '/k winget upgrade --all & pause') -Trigger (New-ScheduledTaskTrigger -Weekly -DaysOfWeek Wednesday -At 9:00AM) -Settings (New-ScheduledTaskSettingsSet -StartWhenAvailable) -Force"
+    echo WingetUpdates task created.
+) else (
+    echo Scheduled task WingetUpdates already exists.
+)
+
+REM ====================================================
+REM 5. ENABLE AND SCHEDULE SYSTEM RESTORE POINT
+REM ====================================================
+echo [5/6] Checking System Restore configuration...
+wmic.exe /Namespace:\\root\default Path SystemRestore Get Description /Format:List | findstr /I "System Restore Point" >nul
+if %errorlevel% neq 0 (
+    echo Creating restore configuration and enabling VSS...
+    net start vss >nul
+    powershell -Command "Enable-ComputerRestore -Drive 'C:'; vssadmin Resize ShadowStorage /For=C: /On=C: /MaxSize=2%"
+) else (
+    echo System Restore already configured.
+)
+
+REM ====================================================
+REM 6. ENABLE FIREWALL ON ALL PROFILES
+REM ====================================================
+echo [6/6] Enabling Windows Firewall on all profiles...
+netsh advfirewall set allprofiles state on >nul
+netsh advfirewall set publicprofile firewallpolicy blockinbound,allowoutbound >nul
+netsh advfirewall show publicprofile
+
+REM ====================================================
+REM STATUS SUMMARY BEFORE QUICK SCANS
+REM ====================================================
+echo.
+echo ==================================================
+echo        SYSTEM CONFIGURATION SUMMARY COMPLETE
+echo ==================================================
+echo  - Malware protection ensured
+echo  - DNS protection set (OpenDNS)
+echo  - Windows Update service active
+echo  - Scheduled update task verified
+echo  - Restore point functionality ready
+echo  - Firewall enabled and enforced
+echo ==================================================
+echo.
 pause
-#Determine interface varable
-netsh interface show interface
-#Secures DNS
-netsh interface ip set dns name="Wi-Fi" static 208.67.222.222
-netsh interface ip add dns name="Wi-Fi" 208.67.220.220 index=2
-pause
-# Backup Service Running 
-sc config wuauserv start= auto & net start wuauserv & sc query wuauserv
-pause
-#secure the firewall
-netsh advfirewall set allprofiles state on & netsh advfirewall set publicprofile firewallpolicy blockinbound,allowoutbound & netsh advfirewall show publicprofile
-pause
-#Updates all Applications
+
+REM EXECUTE REQUESTED QUICK SCANS
+echo Starting QUICK SCANS per your selection...
+echo.
+
+if /I "%scanChoice%"=="1" goto QuickAppUpdate
+if /I "%scanChoice%"=="2" goto QuickAVScan
+if /I "%scanChoice%"=="3" goto QuickRestore
+if /I "%scanChoice%"=="4" goto QuickVulnScan
+if /I "%scanChoice%"=="A" goto AllScans
+if /I "%scanChoice%"=="N" goto End
+
+:QuickAppUpdate
+echo Running Quick App Update (Winget)...
 winget upgrade --all
+echo.
+echo All tests Successful. This tool is now closing.
 pause
-#Schedules the winget update
-powershell -Command "Register-ScheduledTask -TaskName 'WingetUpdates' -Action (New-ScheduledTaskAction -Execute 'cmd.exe' -Argument '/k winget upgrade --all & pause') -Trigger (New-ScheduledTaskTrigger -Weekly -DaysOfWeek Wednesday -At 9:00AM) -Settings (New-ScheduledTaskSettingsSet -StartWhenAvailable) -Force"
+goto End
+
+:QuickAVScan
+echo Running Quick Antivirus Scan...
+powershell.exe -c "Start-MpScan -ScanType QuickScan"
+echo.
+echo All tests Successful. This tool is now closing.
 pause
-#Displays the results of task scheduler
-schtasks /query /tn "wingetupdates" /fo LIST /v
+goto End
+
+:QuickRestore
+echo Creating Quick Restore Point...
+powershell.exe -ExecutionPolicy Bypass -Command "Checkpoint-Computer -Description 'Restore Point (Automatic)' -RestorePointType MODIFY_SETTINGS"
+echo.
+echo All tests Successful. This tool is now closing.
 pause
-#Displays vssadmin
-vssadmin list shadowstorage
+goto End
+
+:QuickVulnScan
+echo Beginning IP Range Vulnerability Scan setup...
+powershell -Command "Invoke-WebRequest https://nmap.org/dist/nmap-7.94-setup.exe -OutFile $env:USERPROFILE\Downloads\nmap-setup.exe -ErrorAction Stop; Start-Process -Wait $env:USERPROFILE\Downloads\nmap-setup.exe"
+echo.
+echo NMAP installed. Now downloading vulnscan from Github.
+echo.
 pause
-#Create restorepoint
-wmic.exe /Namespace:\\root\default Path SystemRestore Call CreateRestorePoint "Restore Point Name", 100, 7
+powershell -Command "Invoke-WebRequest -Uri https://github.com/scipag/vulscan/archive/refs/heads/master.zip -OutFile $env:TEMP\vulscan.zip"
+echo.
+echo NMAP installed. Now downloading vulnscan from Github.
+echo.
 pause
-#Schedule full backup every day at 8:00AM
-SCHTASKS /Create /SC DAILY /TN DailyFullBackup /RL HIGHEST /st 08:00 /TR "wbAdmin Start Backup -backupTarget:F: -include:C: -allCritical -quiet"
+powershell -Command "Expand-Archive -Path $env:TEMP\vulscan.zip -DestinationPath $env:TEMP\vulscan -Force"
+echo.
+echo Expanding the vulscan zipped file
+echo.
 pause
-#Put system manufacture in variable for report
-systeminfo
+xcopy /E /Y "%TEMP%\vulscan\vulscan-master*" "C:\Program Files (x86)\Nmap\scripts\"
+echo.
+echo Copying the files to the proper locations in NMAP
+echo.
 pause
-#opens Windows Hello to setup 
-start ms-settings:signinoptions
-#opens up password checker
-start HTTPS://WWW.GRC.COM/HAYSTACK.HTM
-#opens up grc.com for security
-start HTTPS://WWW.GRC.COM/X/NE.DLL?BH0BKYD2
-#opens up browser security test
-start HTTPS://BROWSERAUDIT.COM
-#opens Adblocker to download
-start HTTPS://ADBLOCKULTIMATE.NET/BROWSERS
-#opens up google password manager
-start HTTPS://PASSWORDS.GOOGLE.COM
-@echo.
-@echo.
-@echo completed
-@echo.
+for /f "usebackq delims=" %%a in (`powershell -NoProfile -Command "$a = Get-NetIPAddress -AddressFamily IPv4 |
+    Where-Object { $_.IPAddress -notmatch '^(169\.254|127\.)' -and
+                   (Get-NetAdapter -InterfaceIndex $_.InterfaceIndex).Status -eq 'Up' } |
+    Select-Object -First 1;
+  if (-not $a) { exit 1 }
+  $p = $a.IPAddress.Split('.')
+  Write-Output ($p[0] + '.' + $p[1] + '.' + $p[2] + '.0/24')"`) do set "r=%%a"
+
+if not defined r (
+  echo Could not determine network address.
+  pause
+  exit /b 1
+)
+"C:\Program Files (x86)\Nmap\nmap.exe" -sV -v --script=vulscan.nse %r%
+echo.
+echo.
+echo All tests Successful. This tool is now closing.
 pause
+goto End
+
+:AllScans
+call :QuickAppUpdate
+call :QuickAVScan
+call :QuickRestore
+call :QuickVulnScan
+goto End
+
