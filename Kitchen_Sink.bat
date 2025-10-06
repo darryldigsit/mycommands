@@ -10,11 +10,11 @@ echo.
 echo.
 
 REM --- Prompt for Quick Scan selection ---
-echo Choose which QUICK SCANS you want to run after Configuring the system (if any).
+echo In addition to basic hardening, choose any of the following utilities to run after Configuring the system (if any).
 echo.
-echo [1] Quick App Update         - Manually Updates installed apps via Winget
-echo [2] Quick AV Scan            - Runs Windows Defender quick scan if enabled
-echo [3] Quick Restore Point      - Creates a new system restore point if possible
+echo [1] Update all Applications  - Manually Updates installed apps via Winget
+echo [2] Windows AV Scan          - Runs Windows Defender quick scan if enabled
+echo [3] Create a Restore Point   - Creates a new system restore point if possible
 echo [4] Vulnerability IP Scan    - Installs Nmap and runs network scan for vulnerabilities
 echo [A] All Quick Scans
 echo [N] None
@@ -143,40 +143,22 @@ powershell -Command "Invoke-WebRequest https://nmap.org/dist/nmap-7.94-setup.exe
 echo.
 echo NMAP installed. Now downloading vulnscan from Github.
 echo.
-pause
 powershell -Command "Invoke-WebRequest -Uri https://github.com/scipag/vulscan/archive/refs/heads/master.zip -OutFile $env:TEMP\vulscan.zip"
 echo.
 echo NMAP installed. Now downloading vulnscan from Github.
 echo.
-pause
 powershell -Command "Expand-Archive -Path $env:TEMP\vulscan.zip -DestinationPath $env:TEMP\vulscan -Force"
 echo.
 echo Expanding the vulscan zipped file
 echo.
-pause
 xcopy /E /Y "%TEMP%\vulscan\vulscan-master*" "C:\Program Files (x86)\Nmap\scripts\"
 echo.
 echo Copying the files to the proper locations in NMAP
 echo.
-pause
-for /f "usebackq delims=" %%a in (`powershell -NoProfile -Command "$a = Get-NetIPAddress -AddressFamily IPv4 |
-    Where-Object { $_.IPAddress -notmatch '^(169\.254|127\.)' -and
-                   (Get-NetAdapter -InterfaceIndex $_.InterfaceIndex).Status -eq 'Up' } |
-    Select-Object -First 1;
-  if (-not $a) { exit 1 }
-  $p = $a.IPAddress.Split('.')
-  Write-Output ($p[0] + '.' + $p[1] + '.' + $p[2] + '.0/24')"`) do set "r=%%a"
-
-if not defined r (
-  echo Could not determine network address.
-  pause
-  exit /b 1
-)
-"C:\Program Files (x86)\Nmap\nmap.exe" -sV -v --script=vulscan.nse %r%
+powershell -Command "$ip = ((Get-NetIPConfiguration | Where-Object {$_.IPv4DefaultGateway -ne $null}).IPv4Address | Select-Object -First 1).IPAddress; & \"C:\Program Files (x86)\Nmap\nmap.exe\" -sV -v --script=vulscan.nse \"$ip/24\""
 echo.
 echo.
 echo All tests Successful. This tool is now closing.
-pause
 goto End
 
 :AllScans
