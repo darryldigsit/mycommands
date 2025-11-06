@@ -68,14 +68,7 @@ REM ====================================================
 REM 5. ENABLE AND SCHEDULE SYSTEM RESTORE POINT
 REM ====================================================
 echo [5/6] Checking System Restore configuration...
-wmic.exe /Namespace:\\root\default Path SystemRestore Get Description /Format:List | findstr /I "System Restore Point" >nul
-if %errorlevel% neq 0 (
-    echo Creating restore configuration and enabling VSS...
-    net start vss >nul
-    powershell -Command "Enable-ComputerRestore -Drive 'C:'; vssadmin Resize ShadowStorage /For=C: /On=C: /MaxSize=2%"
-) else (
-    echo System Restore already configured.
-)
+powershell -Command "Enable-ComputerRestore -Drive 'C:\'; vssadmin Resize ShadowStorage /For=C: /On=C: /MaxSize=2%"
 
 REM ====================================================
 REM 6. ENABLE FIREWALL ON ALL PROFILES
@@ -132,7 +125,7 @@ goto End
 
 :QuickRestore
 echo Creating Quick Restore Point...
-powershell.exe -ExecutionPolicy Bypass -Command "Checkpoint-Computer -Description 'Restore Point (Automatic)' -RestorePointType MODIFY_SETTINGS"
+powershell.exe -Command "Checkpoint-Computer -Description 'Restore Point (Automatic)' -RestorePointType MODIFY_SETTINGS"
 echo.
 echo All tests Successful. This tool is now closing.
 pause
