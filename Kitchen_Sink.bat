@@ -3,7 +3,7 @@ title System Setup and Quick Scans
 color 0A
 
 echo ==================================================
-echo       BASIC WINDOWS 11 HARDENING TOOL
+echo      BASIC WINDOWS 11 HARDENING TOOL v1
 echo ==================================================
 echo For assistance with this tool, contact Darryl Hicks: dhicks@darrylhicks.com
 echo.
