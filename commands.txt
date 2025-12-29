@@ -70,7 +70,7 @@ Discrepancy: Windows specifically checks the update service status, while on Deb
 ________________________________________
 CHAPTER 3   SECTION:  PATCHING SYSTEMS  -  Update All Applications Manually
 
-Windows: winget upgrade --all
+Windows:  winget update --all --verbose --nowarn --force --accept-source-agreements --accept-package-agreements --disable-interactivity & pause
 
 Linux:  sudo apt update && sudo apt upgrade -y
 
