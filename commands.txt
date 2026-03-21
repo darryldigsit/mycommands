@@ -5,8 +5,12 @@ General Command Line Launch:
 Windows: Press ⊞+R, type cmd, press [Ctrl + Shift + Enter]
 Linux: Use Ctrl+Alt+T to open a terminal.
 MacOS: Use Cmd+Space, type Terminal, press Enter.
-________________________________________
-CHAPTER 3   SECTION:  TOP ANTI-MALWARE - Turn On Windows Malware Protection
+______________________________________________________________________________________
+
+CHAPTER 3 SECTION:  TOP ANTI-MALWARE Page 44-47  - Turn On Windows Malware Protection
+   Functionality:  This script re-enables Windows Defender real-time and cloud-based protection, 
+                   turns on PUA (Potentially Unwanted Application) protection, sets full scan parameters, 
+                   and schedules a weekly scan for Sunday.
 
 Windows:   powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Set-MpPreference -DisableRealtimeMonitoring $false; Set-MpPreference -DisableIOAVProtection $false; Set-MpPreference -PUAProtection enable; Set-MpPreference -ScanParameters 2; Set-MpPreference -ScanScheduleDay 1; Set-MpPreference -ScanScheduleOffset 0"
 
@@ -22,9 +26,10 @@ MacOS: Use built-in XProtect (no CLI customization), or install third-party tool
 To check Status: sudo xprotect status
 To update: sudo xprotect update
 Discrepancy: Defender is Windows-specific. Linux uses ClamAV and MacOS uses XProtect.
-________________________________________
-CHAPTER 3   SECTION: DNS PROTECTION - How to Check Your Current DNS
-Functionality: Lists all network configuration and DNS details.
+______________________________________________________________________________________
+
+CHAPTER 3   SECTION: DNS PROTECTION Page 67 - How to Check Your Current DNS
+       Functionality:  Lists all network configuration and DNS details.
 
 Windows:   ipconfig /all
 
@@ -33,9 +38,10 @@ Linux: nmcli device show
 MacOS:   scutil --dns  (or)  cat /etc/resolv.conf
 
 Note: Linux/Mac commands may show only DNS settings, not all the adapter details unlike Windows’ ipconfig /all.
-________________________________________
-CHAPTER 3   SECTION: DNS PROTECTION - Secure DNS with OpenDNS
-Functionality: Sets primary and secondary DNS servers for the interface named “Wi-Fi”.
+______________________________________________________________________________________
+
+CHAPTER 3   SECTION: DNS PROTECTION Page 68 - Secure DNS with OpenDNS
+     Functionality: Sets primary and secondary DNS servers for the active network interfaces.
 
 Windows:   FOR /F "tokens=3,*" %A IN ('netsh interface show interface ^| find "Connected"') DO (netsh interface ip set dns name="%B" static 208.67.222.222 & netsh interface ip add dns name="%B" 208.67.220.220 index=2) & ipconfig /all
 
@@ -46,8 +52,10 @@ Linux: sudo nano /etc/network/interfaces OR sudo nano /etc/netplan/*.yaml
 MacOS:  networksetup -setdnsservers Wi-Fi 208.67.222.222 208.67.220.220
 
 Discrepancy: Interface names may differ. You must know the exact name or index for the network device on all operating systems.
-________________________________________
-CHAPTER 3   SECTION:  DNS PROTECTION -  Show the Connected Interfaces Names
+______________________________________________________________________________________
+
+CHAPTER 3   SECTION:  DNS PROTECTION (not shown in book) -  Show the Connected Interfaces Names
+    Functionality:  This command displays the network interfaces, names and status
 
 Windows:   netsh interface show interface
 
@@ -56,8 +64,11 @@ Linux: ip -o link show up | awk -F': ' '{print $2}'
 MacOS: networksetup -listallnetworkservices
 
 Note: The commands differ in output style and content but all show network device names/IDs.
-________________________________________
-CHAPTER 3   SECTION:  PATCHING SYSTEMS - Turn On Windows Update Service 
+______________________________________________________________________________________
+
+CHAPTER 3   SECTION:  PATCHING SYSTEMS page 69 - Turn On Windows Update Service 
+   Functionality: Sets the Windows Update service (wuauserv) to start automatically, 
+                  starts the service, and then queries its current status.
 
 Windows: sc config wuauserv start= auto & net start wuauserv & sc query wuauserv
 
@@ -67,18 +78,26 @@ Linux:  sudo systemctl enable apt-daily-upgrade.timer && sudo systemctl start ap
 MacOS: sudo launchctl load -w /Library/LaunchDaemons/com.apple.softwareupdate.plist && sudo launchctl start com.apple.softwareupdate
 
 Discrepancy: Windows specifically checks the update service status, while on Debian/MacOS, package updates are checked differently (there's no analog for wuauserv).
-________________________________________
-CHAPTER 3   SECTION:  PATCHING SYSTEMS  -  Update All Applications Manually
 
-Windows:  winget update --all --verbose --nowarn --force --accept-source-agreements --accept-package-agreements --disable-interactivity & pause
+______________________________________________________________________________________
+
+CHAPTER 3   SECTION:  PATCHING SYSTEMS Page 73 -  Update All Applications Manually
+     Funtionality: This command forcibly upgrades all installed winget packages, 
+                   automatically accepting all agreements, suppressing warnings and prompts, 
+                   and then pauses to display the output.
+
+Windows:  winget grade --all --verbose --nowarn --force --accept-source-agreements --accept-package-agreements --disable-interactivity & pause
 
 Linux:  sudo apt update && sudo apt upgrade -y
 
-MacOS:   brew update && brew upgrade
+MacOS:   brew update && brew upgrade.
 
 Note: Requires Homebrew for MacOS, which is not included by default; winget is Windows 10+/11 only.
-________________________________________
-CHAPTER 3   SECTION:  PATCHING SYSTEMS  - Schedule Weekly Application Updates
+______________________________________________________________________________________
+
+CHAPTER 3   SECTION:  PATCHING SYSTEMS Page 73  - Schedule Weekly Application Updates
+     Functionality: This command creates a scheduled task named WingetUpdates that runs every
+                    Wednesday at 9:00 AM to execute winget upgrade --all in a paused command window.
 
 Windows:   powershell -Command "Register-ScheduledTask -TaskName 'WingetUpdates' -Action (New-ScheduledTaskAction -Execute 'cmd.exe' -Argument '/k winget upgrade --all & pause') -Trigger (New-ScheduledTaskTrigger -Weekly -DaysOfWeek Wednesday -At 9:00AM) -Settings (New-ScheduledTaskSettingsSet -StartWhenAvailable) -Force"
 
@@ -87,16 +106,22 @@ Linux:  sudo bash -c '(crontab -l 2>/dev/null; echo "0 9 * * 3 root apt update &
 MacOS:  sudo bash -c '(crontab -l 2>/dev/null; echo "0 9 * * 3 root apt update && apt upgrade -y") | crontab -'
 
 Discrepancy: The Windows command creates a system-scheduled task; on Linux/Mac, cron or launchd is used instead.
-________________________________________
-CHAPTER 3   SECTION:  PATCHING SYSTEMS  - Firmware Updates (locate system Info)
+______________________________________________________________________________________
+
+CHAPTER 3   SECTION:  PATCHING SYSTEMS (not included on page 69) - Firmware Updates (locate system Info)
+      Functionality: displays detailed information about the computer’s hardware, operating system, and configuration, 
+                     including OS version, build, manufacturer, processor, memory, network adapters, and installed hotfixes
 
 Windows:  systeminfo
 
 Linux: sudo dmidecode -t baseboard
 
 MacOS:  system_profiler SPHardwareDataType
-________________________________________
+______________________________________________________________________________________
+
 CHAPTER 3   SECTION:  BACKUPS  - Check if Shadow Copies are running
+     Functionality: This displays the current Volume Shadow Copy Service (VSS) storage settings for each drive, 
+                    including the used, allocated, and maximum space reserved for shadow copies (system restore points and backups).
 
 Windows: vssadmin list shadowstorage
 
@@ -106,8 +131,10 @@ Timeshift (not default):  sudo timeshift --list
 
 MacOS: Use Time Machine (GUI), or for APFS snapshots: tmutil listlocalsnapshots /
 Discrepancy: Underlying technologies for snapshots vary significantly; Windows uses VSS, while Linux might use LVM/Btrfs/Timeshift, Mac uses Time Machine or APFS snapshots.
-________________________________________
+______________________________________________________________________________________
+
 CHAPTER 3   SECTION:  BACKUPS - Troubleshooting (Turn on VSSAdmin)
+     Functionality: This uses WMIC to enable System Restore on the C: drive, allowing Windows to create restore points
 
 Windows: wmic.exe /Namespace:\\root\default Path SystemRestore Call Enable "C:"
 
@@ -116,8 +143,11 @@ Linux: sudo apt update && sudo apt install -y timeshift
 MacOS: Time Machine setup via System Preferences.
 
 Note: No direct CLI for enabling Time Machine or Timeshift snapshots via one command.
-________________________________________
+______________________________________________________________________________________
+
 CHAPTER 3   SECTION:  BACKUPS - Troubleshooting (Install WMI)
+     Funtionality: uses DISM to repair the running Windows image by restoring corrupted system files 
+                  from a specified WIM source without contacting Windows Update
 
 Windows:  DISM /Online /Cleanup-Image /RestoreHealth /Source:wim:D:\\sources\\install.wim:1 /LimitAccess 
 
@@ -127,8 +157,10 @@ MacOS: diskutil repairDisk <disk>
 Or for software, reinstall via App Store or Terminal.
 
 Discrepancy: DISM is unique to Windows for servicing Windows images.
-________________________________________
+______________________________________________________________________________________
+
 CHAPTER 3   SECTION:  BACKUPS - Creating Manual System Restore Point
+     Functionality:  creates a System Restore point named “Restore Point (Automatic)” 
 
 Windows:  powershell.exe -ExecutionPolicy Bypass -Command "Checkpoint-Computer -Description 'Restore Point (Automatic)' -RestorePointType MODIFY_SETTINGS"
 
@@ -138,8 +170,10 @@ sudo timeshift --create --comments "Manual Restore Point"
 MacOS: No CLI for Time Machine snapshot creation; can be done via GUI or tmutil for APFS:  sudo tmutil snapshot
 
 Discrepancy: Underlying infrastructure differs; Timeshift or APFS-based, are not built into classic UNIX.
-________________________________________
+______________________________________________________________________________________
+
 CHAPTER 3   SECTION:  BACKUPS -  Schedule a Full System Backup
+    Functionality: Enables System Restore on the C: drive and sets its shadow copy storage maximum size to 2% of the drive.
 
 Windows:  powershell -Command "Enable-ComputerRestore -Drive 'C:\'; vssadmin Resize ShadowStorage /For=C: /On=C: /MaxSize=2%"
 
@@ -148,8 +182,11 @@ Linux:  sudo bash -c '(crontab -l 2>/dev/null; echo "0 8 * * * root timeshift --
 MacOS:  Time Machine backups typically auto-run, but for scheduled CLI tasks: tmutil startbackup --auto
 
 Discrepancy: Backup tooling is OS-specific; wbAdmin is Windows-only.
-________________________________________
+______________________________________________________________________________________
+
 CHAPTER 3   SECTION:  FIREWALL - Turn On and Secure OS Firewall
+      Functionality: enables Windows Firewall for all profiles, configures the public profile to block inbound 
+                     and allow outbound traffic, and then displays the public profile’s current settings.
 
 Windows:   netsh advfirewall set allprofiles state on & netsh advfirewall set publicprofile firewallpolicy blockinbound,allowoutbound & netsh advfirewall show publicprofile
 
@@ -158,22 +195,30 @@ Linux:  sudo sh -c 'ufw enable && ufw default deny incoming && ufw default allow
 MacOS:  sudo sh -c '/usr/libexec/ApplicationFirewall/socketfilterfw --setglobalstate on && /usr/libexec/ApplicationFirewall/socketfilterfw --setblockall on && /usr/libexec/ApplicationFirewall/socketfilterfw --getglobalstate'
 
 Discrepancy: All can set firewall defaults, but the commands and feature set differ.
-________________________________________
+______________________________________________________________________________________
+
 CHAPTER 4  SECTION:  TO PROXY OR NOT TO PROXY - determine resources
+     Functionality: Displays free physical memory and free space on the C: drive using PowerShell
 
 Windows:   powershell -NoProfile -Command "$os=Get-CimInstance Win32_OperatingSystem; $memGB=[math]::Round($os.FreePhysicalMemory/1024/1024); $disk=(Get-CimInstance Win32_LogicalDisk | Where-Object { $_.DeviceID -eq 'C:' }); $freeGB=[math]::Round($disk.FreeSpace/1GB,2); Write-Output ('Free RAM: {0} GB; Free C: space: {1} GB' -f $memGB,$freeGB)"
 
 Linux/MacOS:  echo "Memory:" && free -h 2>/dev/null || vm_stat && echo "Disk Space:" && df -h
-________________________________________
+______________________________________________________________________________________
+
 CHAPTER 4  SECTION:  WHAT ABOUT VULNERABILITIES  - Install Nmap 
+     Functionality: Downloads the Nmap installer and launches it for installation
+                    Do this prior to the next 2 commands
 
 Windows:  powershell -Command "Invoke-WebRequest https://nmap.org/dist/nmap-7.94-setup.exe -OutFile $env:USERPROFILE\Downloads\nmap-setup.exe -ErrorAction Stop; Start-Process -Wait $env:USERPROFILE\Downloads\nmap-setup.exe"
 
 Linux:  sudo apt-get install nmap && sudo apt upgrade nmap
 
 MacOS: sudo apt-get install nmap && sudo apt upgrade nmap
-________________________________________
+______________________________________________________________________________________
+
 CHAPTER 4  SECTION: WHAT ABOUT VULNERABILITIES  - Install Vulnerability Data
+     Functionality: Downloads, extracts, and copies Vulscan scripts for Nmap to enable vulnerability scanning. 
+                    Run this after the previous command that installs NMAP
 
 Windows: (Run the following three commands)
 powershell -Command "Invoke-WebRequest -Uri https://github.com/scipag/vulscan/archive/refs/heads/master.zip -OutFile $env:TEMP\vulscan.zip"
@@ -182,25 +227,32 @@ xcopy /E /Y "%TEMP%\vulscan\vulscan-master\*" "C:\Program Files (x86)\Nmap\scrip
 
 Linux\MacOS:  (This is all one command)
 [ -d /usr/share/nmap/scripts/nmap-vulners/.git ] && sudo git -C /usr/share/nmap/scripts/nmap-vulners pull || sudo git clone https://github.com/vulnersCom/nmap-vulners.git /usr/share/nmap/scripts/nmap-vulners && [ -d /usr/share/nmap/scripts/vulscan/.git ] && sudo git -C /usr/share/nmap/scripts/vulscan pull || sudo git clone https://github.com/scipag/vulscan /usr/share/nmap/scripts/vulscan && sudo chmod +x /usr/share/nmap/scripts/vulscan/update.sh && sudo /usr/share/nmap/scripts/vulscan/update.sh
-________________________________________
-CHAPTER 4 SECTION: WHAT ABOUT VULNERABILITIES -  Example Scanning Commands
+______________________________________________________________________________________
 
-Windows:  This command automatically scans your full local IP range for vulnerabilities
- powershell -Command "$ip = ((Get-NetIPConfiguration | Where-Object {$_.IPv4DefaultGateway -ne $null}).IPv4Address | Select-Object -First 1).IPAddress; & \"C:\Program Files (x86)\Nmap\nmap.exe\" -sV -v --script=vulscan.nse \"$ip/24\""
+CHAPTER 4 SECTION: WHAT ABOUT VULNERABILITIES -  Example Scanning Commands
+     Functionality: This command automatically scans your full local IP range for vulnerabilities
+                    Run this after the previous 2 commands that installs NMAP and the Vulnerability Data
+
+Windows:  powershell -Command "$ip = ((Get-NetIPConfiguration | Where-Object {$_.IPv4DefaultGateway -ne $null}).IPv4Address | Select-Object -First 1).IPAddress; & \"C:\Program Files (x86)\Nmap\nmap.exe\" -sV -v --script=vulscan.nse \"$ip/24\""
 
 Linux/MacOS:   nmap -sV -v --script vulscan/vulscan.nse 192.168.1.0/24
 
 Combined Vuln + vulscan:  nmap -sV --script nmap-vulners/,vulscan/ 192.168.1.0/24
 Filter by CVSS score: nmap -sV --script vuln --script-args mincvss=7.0 192.168.1.1
-________________________________________
+______________________________________________________________________________________
+
 BONUS COMMANDS:  SHOW ALL SSIDS AND PASSWORDS 
+     Functionality: This is a kick-ass script that retrieves all saved Wi-Fi SSIDs and their cleartext passwords
 
 Windows: powershell.exe -Command "(netsh wlan show profiles) | Select-String ':(.+)$' | ForEach-Object { $name = $_.Matches.Groups[1].Value.Trim(); (netsh wlan show profile name=\"$name\" key=clear) | Select-String 'Key Content\s+:\s+(.+)$' | ForEach-Object { $pass = $_.Matches.Groups[1].Value.Trim(); [PSCustomObject]@{ SSID = $name; Password = $pass } } } | Format-Table -AutoSize"
 
 Linux:  for ssid in $(nmcli -t -f NAME connection show); do echo "SSID: $ssid"; nmcli connection show "$ssid" | grep -i 802-11-wireless-security.psk; done
 
 MacOS: security find-generic-password -wa "SSID_NAME"
-________________________________________
+______________________________________________________________________________________
+
 BONUS COMMANDS:  KITCHEN SINK (Load It All!) 
+     Functionality: Downloads and executes the Kitchen_Sink batch script to apply all chapter 3 improvements
+
 Windows:  This command downloads and installs all of the applicable chapter (3) improvements.
  powershell.exe -Command "Invoke-WebRequest -Uri https://raw.githubusercontent.com/darryldigsit/mycommands/main/Kitchen_Sink.bat -OutFile Kitchen_Sink.bat; cmd /c Kitchen_Sink.bat" 
