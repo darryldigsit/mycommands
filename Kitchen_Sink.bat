@@ -41,6 +41,7 @@ echo AV scanners as malicious and I want this file to continue classified as ben
 echo.
 echo.
 echo %RED%Press any key to begin, or Ctrl+C to stop...%RESET%
+echo (**If you don't know what's going on here, press any key!)
 >nul pause
 echo.
 echo.
@@ -54,6 +55,7 @@ echo.
 echo This checks whether Windows Defender (WinDefend service) is running, and if not, enables its real-time and security protections via PowerShell
 echo.
 echo %YELLOW%Press C to turn on malware protection or X to skip this step...%RESET%
+echo (**If you don't know what's going on here, press C!)
 choice /c CX /n /m "" >nul 2>&1
 if errorlevel 2 goto SkipStep1
 sc query windefend | findstr /i "RUNNING" >nul
@@ -85,6 +87,7 @@ echo.
 echo This sets all "connected" network interfaces to use OpenDNS DNS servers (208.67.222.222 and 208.67.220.220) and then displays the configured DNS servers.
 echo.
 echo %YELLOW%Press C to improve DNS or X to skip this step...%RESET%
+echo (**If you don't know what's going on here, press C!)
 choice /c CX /n /m "" >nul 2>&1
 if errorlevel 2 goto SkipStep2
 FOR /F "tokens=3,*" %%A IN ('netsh interface show interface ^| find "Connected"') DO (
@@ -112,6 +115,7 @@ echo.
 echo This configures the Windows Update service (wuauserv) to start automatically, starts it, and then verifies that it is running.
 echo.
 echo %YELLOW%Press C to Enable Updates or X to skip this step...%RESET%
+echo (**If you don't know what's going on here, press C!)
 choice /c CX /n /m "" >nul 2>&1
 if errorlevel 2 goto SkipStep3
 sc config wuauserv start= auto >nul
@@ -137,6 +141,7 @@ echo.
 echo This checks if a scheduled task named WingetUpdates exists, and if not, creates one that runs winget upgrade --all every Wednesday at 9:00 AM. Type taskschd.msc to modify the date/time once complete.
 echo.
 echo %YELLOW%Press C to Schedule Updates or X to skip this step...%RESET%
+echo (**If you don't know what's going on here, press C!)
 choice /c CX /n /m "" >nul 2>&1
 if errorlevel 2 goto SkipStep4
 schtasks /Query /TN WingetUpdates >nul 2>&1
@@ -166,6 +171,7 @@ echo.
 echo This enables System Restore on the C: drive and limits its shadow storage (restore point space) to my recommended 2%% of the drive.
 echo.
 echo %YELLOW%Press C to Schedule a Restore Point or X to skip this step...%RESET%
+echo (**If you don't know what's going on here, press C!)
 choice /c CX /n /m "" >nul 2>&1
 if errorlevel 2 goto SkipStep5
 echo.
@@ -191,6 +197,7 @@ echo.
 echo This enables Windows Firewall for all profiles, sets the public profile to block inbound and allow outbound traffic, and then displays the public profile settings.
 echo.
 echo %YELLOW%Press C to Enable Firewall or X to skip this step...%RESET%
+echo (**If you don't know what's going on here, press C!)
 choice /c CX /n /m "" >nul 2>&1
 if errorlevel 2 goto SkipStep6
 netsh advfirewall set allprofiles state on >nul
@@ -216,6 +223,7 @@ echo.
 echo This hardens privacy settings by blocking third-party cookies and background activity in Chrome and Edge, and disabling Windows telemetry, advertising ID, and personalized content features.
 echo.
 echo %YELLOW%Press C to Secure Browsers or X to skip this step...%RESET%
+echo (**If you don't know what's going on here, press C!)
 choice /c CX /n /m "" >nul 2>&1
 if errorlevel 2 goto SkipStep7
 powershell.exe -NoProfile -Command "New-Item -Path HKCU:\Software\Policies\Google\Chrome -Force | Out-Null; Set-ItemProperty -Path HKCU:\Software\Policies\Google\Chrome -Name BlockThirdPartyCookies -Value 1" && powershell.exe -NoProfile -Command "Set-ItemProperty -Path HKCU:\Software\Policies\Google\Chrome -Name BackgroundModeEnabled -Value 0"
@@ -256,7 +264,7 @@ echo %BOLD%%CYAN%=================================================%RESET%
 echo.
 echo %YELLOW%Done with all the selected Windows security hardening from Chapter 3 of "Be the Family Computer Hero"%RESET%
 echo. 
-echo %BOLD%%CYAN%BONUS:%RESET% In addition to basic hardening, you may now choose any of the optional security tasks below.
+echo %BOLD%%CYAN%DOITNOW!:%RESET% Now that you've scheduled these security tasks, you can take 5 minutes and run them now...
 echo.
 echo %CYAN%[1]%RESET% %WHITE%Update all Applications%RESET%  - Manually updates installed apps via Winget (already scheduled)
 echo %CYAN%[2]%RESET% %WHITE%Windows AV Scan%RESET%          - Runs Windows Defender Virus Scan (if fails, see page 47 to enable this)
@@ -279,6 +287,9 @@ if errorlevel 1 goto QuickAppUpdate
 
 :QuickAppUpdate
 echo Running Quick App Update (Winget)...
+echo %BOLD%%CYAN%This may require you do tap Y, or Enter, or Click OK on security prompt. 
+echo Do these things or this command will wait and wait.....%RESET%
+echo.
 winget upgrade --all
 echo.
 echo App Update Complete.
@@ -303,6 +314,8 @@ echo Running All Scans...
 echo.
 
 echo [1 of 3] Running Quick App Update (Winget)...
+echo %BOLD%%CYAN%This may require you do tap Y, or Enter, or Click OK on security prompt.
+echo Do these things or this command will wait and wait.....%RESET%
 winget upgrade --all
 echo.
 echo App Update Complete.
