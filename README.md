@@ -1,16 +1,16 @@
-Helper Scripts referenced by the book "Be the Family Computer Hero" – Darryl Hicks
-This repository contains three Windows-focused helper scripts based on content from Chapter 3 and Chapter 4 of Be the Family Computer Hero.
+These files are Helper Scripts referenced by the book "Be the Family Computer Hero" – Darryl Hicks.
+This repository contains 3 Windows-focused helper scripts based on content from Chapter 3 and Chapter 4.
 
-Kitchen_Sink.txt – an interactive Windows 11 hardening batch script
-commands.txt – a cross‑platform command reference for Windows, Linux, and macOS.
-Vulnerability-Scanning.txt – an interactive Nmap + vulscan setup and local subnet vulnerability scanner (rename to Vulnerability-Scanning.bat).
+Kitchen_Sink.bat – an interactive Windows 11 hardening batch script
+Commands.txt – a cross‑platform command reference for Windows, Linux, and macOS.
+Vulnerability-Scanning.bat – an interactive Nmap + vulscan setup and local subnet vulnerability scanner.
 
 Note: The “kitchen sink” hardening script intentionally does not include vulnerability scanning to avoid antivirus false positives. Use the 
 separate vulnerability script when you explicitly want that behavior.
 
 1. KITCHEN_SINK.BAT – Windows 11 Hardening Tool
 Overview
-Kitchen_Sink-3.txt is a menu‑driven batch file that implements the book’s basic Windows 11 hardening recommendations with colorized console
+Kitchen_Sink.bat is a menu‑driven batch file that implements the book’s basic Windows 11 hardening recommendations with colorized console
 output and clear prompts.
 
 It performs up to seven hardening steps plus a small “bonus” menu of quick maintenance tasks:
