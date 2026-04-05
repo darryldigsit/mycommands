@@ -297,7 +297,7 @@ goto End
 
 :QuickAVScan
 echo Running Quick Antivirus Scan...
-powershell.exe -c "Start-MpScan -ScanType QuickScan"
+powershell.exe -Command "Start-MpScan -ScanType QuickScan"
 echo.
 echo Antivirus Scan Complete.
 goto End
@@ -322,7 +322,7 @@ echo App Update Complete.
 echo.
 
 echo [2 of 3] Running Quick Antivirus Scan...
-powershell.exe -c "Start-MpScan -ScanType QuickScan"
+powershell.exe -Command "Start-MpScan -ScanType QuickScan"
 echo.
 echo Antivirus Scan Complete.
 echo.
