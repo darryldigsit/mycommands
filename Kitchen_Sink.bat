@@ -4,7 +4,7 @@ net session >nul 2>&1
 if %errorlevel% neq 0 (
     powershell -Command "Write-Host '[ERROR]' -ForegroundColor Red -NoNewline; Write-Host ' This script must be run as Administrator.'"
     echo.
-    echo Trying to Elevate permissions to run. On the next 2 popups, Click RUN and CONTINUE.
+    echo Trying to Elevate permissions to run. On the next 2 popups, Click RUN and YES.
     timeout /t 5 /nobreak >nul
     powershell -Command "Start-Process '%~f0' -Verb RunAs"
     exit /b
