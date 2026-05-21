@@ -1,4 +1,14 @@
 @echo off
+:: Check for Administrator privileges
+net session >nul 2>&1
+if %errorlevel% neq 0 (
+    powershell -Command "Write-Host '[ERROR]' -ForegroundColor Red -NoNewline; Write-Host ' This script must be run as Administrator.'"
+    echo.
+    echo Trying to Elevate permissions to run. On the next 2 popups, Click RUN and CONTINUE.
+    timeout /t 5 /nobreak >nul
+    powershell -Command "Start-Process '%~f0' -Verb RunAs"
+    exit /b
+)
 :: Enable ANSI escape sequences
 for /f "tokens=2 delims=: " %%A in ('reg query "HKCU\Console" /v VirtualTerminalLevel 2^>nul') do set vtl=%%A
 if "%vtl%" neq "1" reg add "HKCU\Console" /v VirtualTerminalLevel /t REG_DWORD /d 1 /f >nul
